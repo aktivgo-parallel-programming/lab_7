@@ -4,10 +4,10 @@
 #include <iostream>
 #include <mpich/mpi.h>
 #include <cstdlib>
-#include <cmath>
 #include <vector>
 
 std::vector<int> create_vector(int);
+void print_vector(const std::vector<int>&);
 
 int main(int argc, char **argv) {
     MPI_Init(&argc, &argv);
@@ -33,34 +33,49 @@ int main(int argc, char **argv) {
         }
 
         vector = create_vector(n);
+        print_vector(vector);
+
+        for (int i = 1; i < proc_num - 1; ++i) {
+            int offset = i * n / proc_num;
+            if (vector[offset - 1] > vector[offset]) {
+                printf("vector not sorted\n");
+                return EXIT_SUCCESS;
+            }
+        }
     }
 
     MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     for (int i = 0; i < proc_num; ++i) {
-        int partSize = proc_rank != proc_num - 1 ? n / (proc_num - 1) : n / (proc_num - 1) + n % (proc_num - 1);
-        int k = proc_rank == 0 ? 1 : proc_rank * partSize + 1;
+        int partSize = i != proc_num - 1 ? n / proc_num : n / proc_num + n % proc_num;
+        int offset = i * (n / proc_num);
         counts.push_back(partSize);
-        offsets.push_back(k);
+        offsets.push_back(offset);
     }
 
-    std::vector<int> buff(100);
+    std::vector<int> part(counts[proc_rank]);
     MPI_Scatterv(vector.data(), counts.data(), offsets.data(), MPI_INT,
-                 &buff, counts[proc_rank], MPI_INT, 0, MPI_COMM_WORLD);
+                 part.data(), counts[proc_rank], MPI_INT, 0, MPI_COMM_WORLD);
+
+    print_vector(part);
 
     bool isSorted = true;
-    for (int i = 0; i < vector.size() - 1; ++i) {
-        if (vector[i] > vector[i + 1]) {
+    for (int i = 0; i < part.size() - 1; ++i) {
+        if (part[i] > part[i + 1]) {
             isSorted = false;
             break;
         }
     }
 
-    bool resSorted = false;
+    bool resSorted;
     MPI_Reduce(&isSorted,&resSorted, 1, MPI_C_BOOL, MPI_LAND, 0, MPI_COMM_WORLD);
 
     if (proc_rank == 0) {
-        printf("res sorted = %d\n", resSorted);
+        if (resSorted) {
+            printf("true\n");
+        } else {
+            printf("false\n");
+        }
     }
 
     MPI_Finalize();
@@ -75,4 +90,11 @@ std::vector<int> create_vector(int n) {
     }
 
     return vector;
+}
+
+void print_vector(const std::vector<int>& vec) {
+    for(int el : vec) {
+        std::cout << el << " ";
+    }
+    std::cout << std::endl;
 }

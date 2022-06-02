@@ -8,6 +8,6 @@ set(CMAKE_BUILD_TYPE RELEASE)
 # mpic++ -o main main.cpp
 # mpiexec -n 2 ./main
 
-add_executable(task_1_a task_1/main_a.cpp)
+add_executable(task_1_a task_1/main_a.cpp task_3/main.cpp task_4/main.cpp)
 add_executable(task_1_b task_1/main_b.cpp)
 add_executable(task_2 task_2/main.cpp)
