@@ -39,6 +39,7 @@ int main(int argc, char **argv) {
             int offset = i * n / proc_num;
             if (vector[offset - 1] > vector[offset]) {
                 printf("vector not sorted\n");
+                MPI_Finalize();
                 return EXIT_SUCCESS;
             }
         }

@@ -21,9 +21,6 @@ int main(int argc, char **argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &proc_rank);
 
     int n = 0;
-    std::vector<int> matrix;
-    std::vector<int> vector;
-
     if (proc_rank == 0) {
         std::cout << "Enter n: ";
         std::cin >> n;
@@ -32,7 +29,14 @@ int main(int argc, char **argv) {
             printf("wrong n");
             return -1;
         }
+    }
 
+    MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+    std::vector<int> matrix;
+    std::vector<int> vector(n);
+
+    if (proc_rank == 0) {
         matrix = create_matrix(n);
         print_matrix(matrix, n);
         printf("\n");
@@ -42,15 +46,13 @@ int main(int argc, char **argv) {
         printf("\n");
     }
 
-    MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(vector.data(), n, MPI_INT, 0, MPI_COMM_WORLD);
 
     int countRows = n / proc_num;
 
     std::vector<int> rows(countRows * n);
     MPI_Scatter(matrix.data(), countRows * n, MPI_INT,
                  rows.data(), countRows * n, MPI_INT, 0, MPI_COMM_WORLD);
-
-    print_vector(rows);
 
     std::vector<int> result(countRows);
     for(int i = 0; i < countRows; i++) {
@@ -68,6 +70,7 @@ int main(int argc, char **argv) {
                allResult.data(), countRows, MPI_INT, 0, MPI_COMM_WORLD);
 
     if (proc_rank == 0) {
+        printf("res:\n");
         print_vector(allResult);
     }
 
@@ -92,7 +95,7 @@ std::vector<int> create_vector(int n) {
     std::vector<int> vector;
 
     for (int i = 0; i < n; ++i) {
-        vector.push_back(i);
+        vector.push_back(i + 1);
     }
 
     return vector;

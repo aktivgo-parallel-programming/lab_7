@@ -56,7 +56,6 @@ int main(int argc, char **argv) {
         printf("\n");
     }
 
-    // Determine the colour and key based on whether my rank is even.
     int colour;
     int key;
     if(proc_rank % 2 == 0)
