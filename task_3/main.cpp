@@ -12,6 +12,8 @@ void print_matrix(const std::vector<int>&, int n);
 void print_vector(const std::vector<int>&);
 
 int main(int argc, char **argv) {
+    srand(time(nullptr));
+
     MPI_Init(&argc, &argv);
 
     int proc_num;
@@ -95,7 +97,7 @@ std::vector<int> create_vector(int n) {
     std::vector<int> vector;
 
     for (int i = 0; i < n; ++i) {
-        vector.push_back(i + 1);
+        vector.push_back(rand() % 10);
     }
 
     return vector;
