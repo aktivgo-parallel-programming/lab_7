@@ -66,7 +66,7 @@ int main(int argc, char** argv)
     MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(&m, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-    vec1 = create_vector(n);
+    vec1 = create_vector(m);
     vec2 = create_vector(n);
     vec3 = create_vector(n);
 
