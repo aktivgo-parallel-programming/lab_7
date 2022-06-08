@@ -5,6 +5,7 @@
 #include <mpich/mpi.h>
 #include <cstdlib>
 #include <vector>
+#include <chrono>
 
 std::vector<int> create_matrix(int);
 std::vector<int> create_vector(int);
@@ -13,6 +14,8 @@ void print_vector(const std::vector<int>&);
 
 int main(int argc, char **argv) {
     srand(time(nullptr));
+
+    std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
 
     MPI_Init(&argc, &argv);
 
@@ -33,6 +36,8 @@ int main(int argc, char **argv) {
         }
     }
 
+    start = std::chrono::high_resolution_clock::now();
+
     MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     std::vector<int> matrix;
@@ -40,12 +45,12 @@ int main(int argc, char **argv) {
 
     if (proc_rank == 0) {
         matrix = create_matrix(n);
-        print_matrix(matrix, n);
-        printf("\n");
+        //print_matrix(matrix, n);
+        //printf("\n");
 
         vector = create_vector(n);
-        print_vector(vector);
-        printf("\n");
+        //print_vector(vector);
+        //printf("\n");
     }
 
     MPI_Bcast(vector.data(), n, MPI_INT, 0, MPI_COMM_WORLD);
@@ -65,15 +70,21 @@ int main(int argc, char **argv) {
         result[i] = sum;
     }
 
-    print_vector(result);
+    //print_vector(result);
 
     std::vector<int> allResult(n);
     MPI_Gather(result.data(), countRows, MPI_INT,
                allResult.data(), countRows, MPI_INT, 0, MPI_COMM_WORLD);
 
     if (proc_rank == 0) {
-        printf("res:\n");
-        print_vector(allResult);
+        end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> diff = end - start;
+
+        double time = diff.count();
+        std::cout << "Time: " << time << "s" << std::endl;
+
+        //printf("res:\n");
+        //print_vector(allResult);
     }
 
     MPI_Finalize();

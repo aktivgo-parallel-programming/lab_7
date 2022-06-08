@@ -5,12 +5,15 @@
 #include <mpich/mpi.h>
 #include <cstdlib>
 #include <vector>
+#include <chrono>
 
 std::vector<int> create_vector(int);
 void print_vector(const std::vector<int>&);
 
 int main(int argc, char **argv) {
     srand(time(nullptr));
+
+    std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
 
     MPI_Init(&argc, &argv);
 
@@ -34,8 +37,10 @@ int main(int argc, char **argv) {
             return -1;
         }
 
+        start = std::chrono::high_resolution_clock::now();
+
         vector = create_vector(n);
-        print_vector(vector);
+        //print_vector(vector);
 
         for (int i = 1; i < proc_num - 1; ++i) {
             int offset = i * n / proc_num;
@@ -60,7 +65,7 @@ int main(int argc, char **argv) {
     MPI_Scatterv(vector.data(), counts.data(), offsets.data(), MPI_INT,
                  part.data(), counts[proc_rank], MPI_INT, 0, MPI_COMM_WORLD);
 
-    print_vector(part);
+    //print_vector(part);
 
     bool isSorted = true;
     for (int i = 0; i < part.size() - 1; ++i) {
@@ -74,6 +79,12 @@ int main(int argc, char **argv) {
     MPI_Reduce(&isSorted,&resSorted, 1, MPI_C_BOOL, MPI_LAND, 0, MPI_COMM_WORLD);
 
     if (proc_rank == 0) {
+        end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> diff = end - start;
+
+        double time = diff.count();
+        std::cout << "Time: " << time << "s" << std::endl;
+
         if (resSorted) {
             printf("true\n");
         } else {
